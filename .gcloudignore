@@ -1,0 +1,22 @@
+# Exclude locally installed dependencies
+node_modules/
+
+# Exclude git history and configuration.
+.git/
+.gitignore
+
+# Exclude npm debug log
+npm-debug.log
+
+# Exclude environment variables
+.env
+.env.*
+
+# Exclude README file
+README.md
+
+# Exclude VS Code configuration
+.vscode/
+
+# Exclude IDE configuration
+.idea/

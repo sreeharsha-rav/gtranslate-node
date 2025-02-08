@@ -1,13 +1,13 @@
 const { JWT } = require("google-auth-library");
-const { getConfig } = require("../config/env");
+const { getConfig } = require("../config/cloudConfig");
 
 // Cache both the JWT client and token
 let jwtClient = null;
 let cachedToken = null;
 let tokenExpiryTime = null;
 
-// Buffer time before token expiry (5 minutes in milliseconds)
-const TOKEN_BUFFER = 5 * 60 * 1000;
+// Buffer time before token expiry (2 hours in milliseconds)
+const TOKEN_BUFFER = 2 * 60 * 60 * 1000;
 
 async function getJWTClient() {
   if (!jwtClient) {

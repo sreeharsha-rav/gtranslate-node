@@ -1,28 +1,22 @@
-const { initializeConfig } = require("./config/env");
-
-// Initialize configuration before anything else
-const config = initializeConfig();
-
 const Koa = require("koa");
 const bodyParser = require("koa-bodyparser");
 const cors = require("@koa/cors");
+const { getConfig } = require("./config/cloudConfig");
+const logger = require("./services/logger");
 const translateRouter = require("./routes/translate");
 const textToSpeechRouter = require("./routes/textToSpeech");
 
+// Initialize configuration
+const config = getConfig();
 const app = new Koa();
 
 // CORS configuration
 const corsOptions = {
   origin: (ctx) => {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(",")
-      : ["http://localhost:3000"];
-
     const origin = ctx.get("Origin");
-    if (allowedOrigins.includes(origin)) {
-      return origin;
-    }
-    return allowedOrigins[0];
+    return config.cors.origins.includes(origin)
+      ? origin
+      : config.cors.origins[0];
   },
   credentials: true,
   allowMethods: ["GET", "POST", "OPTIONS"],
@@ -34,6 +28,31 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser());
 
+// Add logging middleware
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  try {
+    await next();
+    const ms = Date.now() - start;
+    logger.info({
+      method: ctx.method,
+      url: ctx.url,
+      status: ctx.status,
+      duration: `${ms}ms`,
+    });
+  } catch (err) {
+    const ms = Date.now() - start;
+    logger.error({
+      method: ctx.method,
+      url: ctx.url,
+      status: ctx.status,
+      error: err.message,
+      duration: `${ms}ms`,
+    });
+    throw err;
+  }
+});
+
 // Routes
 app.use(translateRouter.routes());
 app.use(translateRouter.allowedMethods());
@@ -42,12 +61,36 @@ app.use(textToSpeechRouter.allowedMethods());
 
 // Error handling
 app.on("error", (err, ctx) => {
-  console.error("Server error:", err);
+  logger.error({
+    err,
+    context: {
+      url: ctx.request.url,
+      method: ctx.request.method,
+      body: ctx.request.body,
+    },
+  });
   ctx.status = err.status || 500;
   ctx.body = { error: "Internal server error" };
 });
 
 const PORT = config.server.port;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT} in ${config.server.env} mode`);
+const server = app.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT} in ${config.server.env} mode`);
+});
+
+// Add SIGTERM handler
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received: closing HTTP server");
+
+  server.close(() => {
+    console.log("HTTP server closed");
+
+    // Close any database connections
+    // mongoose.connection.close();
+
+    // Close any other resources
+    // redis.quit();
+
+    process.exit(0);
+  });
 });

@@ -1,5 +1,6 @@
 const { getAuthToken } = require("./authService");
-const { getConfig } = require("../config/env");
+const { getConfig } = require("../config/cloudConfig");
+const logger = require("./logger");
 
 // list voices available for speech synthesis
 async function listVoices(languageCode = null) {
@@ -27,7 +28,7 @@ async function listVoices(languageCode = null) {
     const data = await response.json();
     return data.voices || [];
   } catch (error) {
-    console.error("Error fetching voices:", error);
+    logger.error({ error }, "Failed to fetch voices");
     throw new Error(`Failed to fetch voices: ${error.message}`);
   }
 }
@@ -36,7 +37,7 @@ async function listVoices(languageCode = null) {
 async function synthesizeSpeech(
   text,
   voice,
-  audioConfig = { audioEncoding: "MP3" }
+  audioConfig = { audioEncoding: "MP3" },
 ) {
   if (!text?.trim()) {
     throw new Error("Text is required");
@@ -64,7 +65,7 @@ async function synthesizeSpeech(
           },
           audioConfig,
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -75,7 +76,7 @@ async function synthesizeSpeech(
     const data = await response.json();
     return data.audioContent; // Returns base64 encoded audio content
   } catch (error) {
-    console.error("Speech synthesis error:", error);
+    logger.error({ error }, "Speech synthesis failed");
     throw new Error(`Speech synthesis failed: ${error.message}`);
   }
 }

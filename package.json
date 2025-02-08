@@ -1,0 +1,36 @@
+{
+  "name": "gtranslate-node",
+  "version": "1.0.0",
+  "description": "Google Translate API Node.js service",
+  "license": "ISC",
+  "author": "Sreeharsha",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js | pino-pretty",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "build": "docker build -t asia-south1-docker.pkg.dev/$PROJECT_ID/gtranslate-api .",
+    "deploy": "gcloud run deploy gtranslate-api --source . --region asia-south1 --platform managed --allow-unauthenticated",
+    "cloud-build": "gcloud builds submit --config cloudbuild.yaml"
+  },
+  "dependencies": {
+    "@koa/cors": "^5.0.0",
+    "@koa/router": "^12.0.1",
+    "dotenv": "^16.4.7",
+    "google-auth-library": "^9.15.1",
+    "koa": "^2.15.0",
+    "koa-bodyparser": "^4.4.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "nodemon": "^3.1.9",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "prettier": "^3.4.2"
+  }
+}

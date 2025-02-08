@@ -1,5 +1,6 @@
-const { getConfig } = require("../config/env");
+const { getConfig } = require("../config/cloudConfig");
 const { getAuthToken } = require("./authService");
+const logger = require("./logger");
 
 // translate text from source language to target language
 async function translateText(text, sourceLang, targetLang) {
@@ -25,7 +26,7 @@ async function translateText(text, sourceLang, targetLang) {
           contents: [text.trim()],
           mimeType: "text/plain", // Specify the content type
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -41,7 +42,10 @@ async function translateText(text, sourceLang, targetLang) {
 
     return data;
   } catch (error) {
-    console.error("Translation error:", error);
+    logger.error(
+      { error, params: { text, sourceLang, targetLang } },
+      "Translation failed",
+    );
     throw new Error(`Translation failed: ${error.message}`);
   }
 }
@@ -68,7 +72,7 @@ async function detectLanguage(text) {
           content: text.trim(),
           mimeType: "text/plain",
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -82,7 +86,7 @@ async function detectLanguage(text) {
       confidence: data.languages?.[0]?.confidence,
     };
   } catch (error) {
-    console.error("Language detection error:", error);
+    logger.error({ error, params: { text } }, "Language detection failed");
     throw new Error(`Language detection failed: ${error.message}`);
   }
 }
@@ -99,20 +103,20 @@ async function listSupportedLanguages(displayLanguage = "en") {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     if (!response.ok) {
       const error = await response.json();
       throw new Error(
-        error.error?.message || "Failed to fetch supported languages"
+        error.error?.message || "Failed to fetch supported languages",
       );
     }
 
     const data = await response.json();
     return data.languages || [];
   } catch (error) {
-    console.error("Error fetching supported languages:", error);
+    logger.error({ error }, "Failed to fetch supported languages");
     throw new Error(`Failed to fetch supported languages: ${error.message}`);
   }
 }

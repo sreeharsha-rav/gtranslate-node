@@ -1,31 +1,26 @@
 const { JWT } = require("google-auth-library");
-const fs = require("fs");
-const path = require("path");
-
-async function getGoogleAuthToken() {
-  try {
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-
-    const client = new JWT({
-      email: credentials.client_email,
-      key: credentials.private_key,
-      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-    });
-
-    const token = await client.getAccessToken();
-    return token.token;
-  } catch (error) {
-    console.error("Auth error:", error);
-    throw new Error(`Authentication failed: ${error.message}`);
-  }
-}
+const logger = require("../services/logger");
 
 // Cache the JWT client to reuse it
 let jwtClient = null;
 
+function getServiceAccountKey() {
+  try {
+    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+      throw new Error(
+        "GOOGLE_SERVICE_ACCOUNT_KEY environment variable is not set",
+      );
+    }
+    return JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+  } catch (error) {
+    logger.error({ error }, "Failed to parse service account key");
+    throw new Error("Invalid service account key format");
+  }
+}
+
 function getJWTClient() {
   if (!jwtClient) {
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+    const credentials = getServiceAccountKey();
     jwtClient = new JWT({
       email: credentials.client_email,
       key: credentials.private_key,
@@ -35,19 +30,14 @@ function getJWTClient() {
   return jwtClient;
 }
 
-function getServiceAccountKey() {
+async function getGoogleAuthToken() {
   try {
-    // Read the service account key file
-    const keyFilePath = path.join(
-      process.cwd(),
-      "credentials",
-      "service-account-key.json"
-    );
-    const keyFileContent = fs.readFileSync(keyFilePath, "utf8");
-    return JSON.parse(keyFileContent);
+    const client = getJWTClient();
+    const token = await client.getAccessToken();
+    return token.token;
   } catch (error) {
-    console.error("Error reading service account key:", error);
-    throw new Error("Failed to load service account key");
+    logger.error({ error }, "Authentication failed");
+    throw new Error(`Authentication failed: ${error.message}`);
   }
 }
 
