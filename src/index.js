@@ -5,7 +5,7 @@ const { getConfig } = require("./config/cloudConfig");
 const logger = require("./services/logger");
 const translateRouter = require("./routes/translate");
 const textToSpeechRouter = require("./routes/textToSpeech");
-
+const healthRouter = require("./routes/health");
 // Initialize configuration
 const config = getConfig();
 const app = new Koa();
@@ -54,6 +54,8 @@ app.use(async (ctx, next) => {
 });
 
 // Routes
+app.use(healthRouter.routes());
+app.use(healthRouter.allowedMethods());
 app.use(translateRouter.routes());
 app.use(translateRouter.allowedMethods());
 app.use(textToSpeechRouter.routes());
@@ -73,24 +75,20 @@ app.on("error", (err, ctx) => {
   ctx.body = { error: "Internal server error" };
 });
 
-const PORT = config.server.port;
-const server = app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT} in ${config.server.env} mode`);
+const port = config.server.port;
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Server listening on port ${port}`);
 });
 
 // Add SIGTERM handler
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");
 
-  server.close(() => {
-    console.log("HTTP server closed");
+  // Close any database connections
+  // mongoose.connection.close();
 
-    // Close any database connections
-    // mongoose.connection.close();
+  // Close any other resources
+  // redis.quit();
 
-    // Close any other resources
-    // redis.quit();
-
-    process.exit(0);
-  });
+  process.exit(0);
 });
