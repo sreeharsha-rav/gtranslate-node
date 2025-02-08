@@ -27,6 +27,10 @@ steps:
       - "--platform"
       - "managed"
       - "--allow-unauthenticated"
+      - "--service-account"
+      - "gtranslate-runner@${PROJECT_ID}.iam.gserviceaccount.com"
+      - "--set-secrets"
+      - "SERVICE_ACCOUNT_KEY=service-account-key:latest"
 
 images:
   - "asia-south1-docker.pkg.dev/$PROJECT_ID/gtranslate-api"
