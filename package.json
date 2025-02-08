@@ -11,10 +11,7 @@
     "dev": "nodemon src/index.js | pino-pretty",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "build": "docker build -t asia-south1-docker.pkg.dev/$PROJECT_ID/gtranslate-api .",
-    "deploy": "gcloud run deploy gtranslate-api --source . --region asia-south1 --platform managed --allow-unauthenticated",
-    "cloud-build": "gcloud builds submit --config cloudbuild.yaml"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@koa/cors": "^5.0.0",

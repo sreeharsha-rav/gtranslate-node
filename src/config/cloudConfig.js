@@ -4,14 +4,21 @@ const requiredEnvVars = ["GOOGLE_PROJECT_ID", "GOOGLE_SERVICE_ACCOUNT_KEY"];
 let configCache = null;
 
 function validateEnv() {
+  // Add PORT to required variables if you want to ensure it's set
   const missing = requiredEnvVars.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
+    console.error(`Missing environment variables: ${missing.join(", ")}`);
     throw new Error(
       `Missing required environment variables: ${missing.join(", ")}\n` +
         "Please configure these in Cloud Run environment variables.",
     );
   }
+
+  // Log available configuration for debugging
+  console.log("Environment validation passed");
+  console.log(`PORT: ${process.env.PORT || "8080"}`);
+  console.log(`NODE_ENV: ${process.env.NODE_ENV || "production"}`);
 }
 
 function getConfig() {

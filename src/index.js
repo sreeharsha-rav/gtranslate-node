@@ -76,7 +76,7 @@ app.on("error", (err, ctx) => {
 });
 
 const port = config.server.port;
-app.listen(port, "0.0.0.0", () => {
+app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 

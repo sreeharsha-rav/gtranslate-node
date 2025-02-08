@@ -13,5 +13,8 @@ RUN npm ci --only=production
 # Copy application code
 COPY . ./
 
+# Expose the port that Cloud Run will use
+EXPOSE 8080
+
 # Start the application
 CMD ["node", "src/index.js"] 
